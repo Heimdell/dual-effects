@@ -1,0 +1,31 @@
+dependencies:
+- base
+- vector
+- ghc-prim
+- mtl
+- exceptions
+
+default-extensions:
+- GADTs
+- BlockArguments
+- KindSignatures
+- DataKinds
+- RankNTypes
+- TypeOperators
+- MultiParamTypeClasses
+- AllowAmbiguousTypes
+- TypeFamilies
+- UndecidableInstances
+- ConstraintKinds
+- FlexibleContexts
+- MagicHash
+- TypeApplications
+- ScopedTypeVariables
+- FlexibleInstances
+- DefaultSignatures
+- QuantifiedConstraints
+- LambdaCase
+
+library:
+  source-dirs:
+  - .
