@@ -9,7 +9,7 @@ data Final n m a where
   Embeds :: n a -> Final n m a
 
 runM :: forall m. Monad m => Eff '[Final m] ~> m
-runM eff = runEff eff (handleFinal /\ empty)
+runM eff = runEff eff (handleFinal /\ skip)
   where
     handleFinal :: Final m m ~> m
     handleFinal = \case

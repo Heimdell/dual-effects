@@ -3,6 +3,7 @@ import Data.IORef
 
 import Control.Monad.Reader
 import Control.Monad.Catch
+import Control.Monad.Fix
 
 import Core
 import Effect.Final
@@ -10,16 +11,14 @@ import Effect.Embed
 import Effect.Store
 import Effect.Env
 import Effect.Error
+import Effect.Fixpoint
+import Effect.NonDet
+import Effect.Write
+import Effect.Resource
+import Effect.Trace
 import Product
 
--- State
-
-
--- Reader
-
--- Exceptions
-
--- Example
+----
 
 data Err = Err Double
   deriving (Show)

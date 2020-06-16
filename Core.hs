@@ -2,8 +2,8 @@ module Core
   ( type (~>)
   , Dispatch
   , (/\)
-  , empty
-  , Eff
+  , skip
+  , Eff (..)
   , runEff
   , send
   , Member
@@ -15,6 +15,7 @@ module Core
   where
 
 import Control.Monad (liftM, ap)
+import Control.Monad.Fix
 
 import Data.Coerce (Coercible)
 import Data.Kind (Constraint)
@@ -30,8 +31,8 @@ data Dispatch fs m where
 (/\) :: f m ~> m -> Dispatch fs m -> Dispatch (f : fs) m
 (/\) = (:/\)
 
-empty :: Dispatch '[] m
-empty = Empty
+skip :: Dispatch '[] m
+skip = Empty
 
 newtype Eff fs a = Eff { runEff :: forall m. Monad m => Dispatch fs m -> m a }
 
@@ -69,7 +70,7 @@ class Effect f where
   weave :: (n ~> m) -> (f n ~> f m)
 
 interpret
-  :: forall f fs x
+  :: forall f fs
   .  (Effect f, Diag fs fs)
   => (f  (Eff fs) ~> Eff fs)
   -> Eff (f : fs) ~> Eff fs
