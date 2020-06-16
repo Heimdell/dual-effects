@@ -57,7 +57,7 @@ import Data.Kind (Constraint)
 
 -- | Natural transformation. Used to hide the @x@ type variable.
 --
-type f  ~> g = forall x. f x -> g x
+type f ~> g = forall x. f x -> g x
 
 -- | A list of effect interpreters.
 --
