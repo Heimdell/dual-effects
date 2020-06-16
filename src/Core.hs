@@ -1,27 +1,27 @@
 
 {-|
-  The core of the effect system.
+  The core of the effect system. /Service locator/ via /interpreter/.
 
-  In my previous attempt, Eff = (Union fs ~> m) ~> m. Yet Union was only
-  mentioned in `send` function, and the only thing was possible to do with it
-  was to `dispatch`. Now the `Member` class encapsulates the Union+dispatch
-  ideas.
+  The @Eff fs a@ is a computation tree, consisting of effects @fs@ in any
+  structure or combination, with a result of type @a@.
 
-  The Eff is a `Dispatch fs m ~> m`, where `Dispatch` is a list of handlers
-  for effects in the @fs@ type list.
+  The `Eff` is internally a function from dispatchers list to any monad.
+  The type is parametrised with a list of effects. It contains effects by
+  "closing over" then, by using `send` function, that transforms some effect
+  into a computation tree.
 
-  The solvable problem of current implementation is that `Dispatch` is a /list/,
-  and therefore incurs @O(N)@ penality to traverse.
+  The call of `send` denotes a place for invocation of some service.
 
-  Another problem is the `Diag` property, which makes it possible to interpret
-  any effect list into itself. The `diag` dispatcher is constructed iteratively
-  and isn't inlinable. If the `Dispatch` was a `f m ~> m /\ Union fs m ~> m`
-  instead, it would be (probably) possible to use `id` instead of `diag`.
+  A `Dispatch` is a list of transformations from each of the prepared effects to
+  a concrete monad.
 
-  In previous implementation, I used to `weave` out recursive references to the
-  same effect in `interpret`. But now `send` does that, running everything into
-  the final monad at once. This, somehow, doesn't break neither Reader nor
-  Error effects.
+  A prepared effect is the one with all recursive occurences of `Eff` are
+  already replaced with the output monad.
+
+  The `Effect` interface provides `weave` function that allows to do that.
+
+  To run the effect, use either `run` (why), `runEff` with dispatchers or
+  `Effect.Final.runM`.
 -}
 
 module Core
@@ -55,7 +55,9 @@ import Control.Monad.Fix
 import Data.Coerce (Coercible, coerce)
 import Data.Kind (Constraint)
 
--- | Natural transformation. Used to hide the @x@ type variable.
+-- | For all @x@, a type of function from @f x@ to @g x@.
+--
+--   Used to hide the @x@ type variable for clarity.
 --
 type f ~> g = forall x. f x -> g x
 
