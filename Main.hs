@@ -55,12 +55,12 @@ oldMain = do
   x <- flip runReaderT (And ref (And (2 :: Int) None))
     $ runM
     $ embedToFinal @M
-    $ embedViaNat @IO @M liftIO
-    $ asReader                 @(Product [IORef String, Int]) @M
-    $ mergeEnv @(IORef String) @[IORef String, Int]
-    $ mergeEnv @Int            @[IORef String, Int]
-    $ errorViaIO @M
-    $ storeViaRIO @String @M
+    $ embedViaNat  @IO @M liftIO
+    $ asReader     @(Product [IORef String, Int]) @M
+    $ mergeEnv     @(IORef String) @[IORef String, Int]
+    $ mergeEnv     @Int            @[IORef String, Int]
+    $ errorViaIO   @M
+    $ storeViaRIO  @String @M
     $ debugTrace
     $ someEffect "foo"
   print x

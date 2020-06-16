@@ -1,7 +1,5 @@
 dependencies:
 - base
-- vector
-- ghc-prim
 - mtl
 - exceptions
 
