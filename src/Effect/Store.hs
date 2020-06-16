@@ -3,7 +3,22 @@
   The `MonadState` effect.
 -}
 
-module Effect.Store where
+module Effect.Store
+  ( -- * Interface
+    Store
+  , retrieve
+  , store
+  , change
+
+    -- * Implementations
+  , storeViaRIO
+  , mergeStore
+  , asState
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Control.Monad.IO.Class
 import Control.Monad.State

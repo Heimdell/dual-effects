@@ -1,7 +1,19 @@
 
-module Effect.Resource where
+module Effect.Resource
+  ( -- * Interface
+    Resource
+  , protect
+  , finally
 
-import Control.Monad.Catch
+    -- * Implementation
+  , asMask
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
+
+import Control.Monad.Catch hiding (finally)
 
 import Core
 

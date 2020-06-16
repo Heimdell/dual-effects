@@ -6,7 +6,19 @@
   because I only `interpret` and it is not allowed to change the effect result.
 -}
 
-module Effect.NonDet where
+module Effect.NonDet
+  ( -- * Interface
+    NonDet
+  , choose
+  , loose
+
+    -- * Implementation
+  , asAlternative
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Control.Applicative
 
@@ -23,9 +35,11 @@ instance Effect NonDet where
   weave f  Loose       = Loose
   weave f (Choose a b) = Choose (f a) (f b)
 
+-- | An `empty`.
 loose :: Member NonDet fs => Eff fs a
 loose = send Loose
 
+-- | A `(<|>)`.
 choose :: Member NonDet fs => Eff fs a -> Eff fs a -> Eff fs a
 choose a b = send (Choose a b)
 

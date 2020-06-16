@@ -3,7 +3,19 @@
   The `MonadThrow`/`MonadCatch` effect.
 -}
 
-module Effect.Error where
+module Effect.Error
+  ( -- * Interface
+    Error
+  , raise
+  , handle
+
+    -- * Implementations
+  , errorViaCatch
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Control.Monad.Catch hiding (handle)
 
@@ -34,12 +46,12 @@ handle ma ema = send (Handle ma ema)
 
 -- | Delegate `Exception` handling to the `Final` monad.
 --
-errorViaIO
+errorViaCatch
   :: forall m fs
   .  (MonadCatch m, Members '[Embed m, Final m] fs, Diag fs fs)
   => Eff (Error : fs)
   ~> Eff          fs
-errorViaIO = interpret \case
+errorViaCatch = interpret \case
   Raise  e      -> embed @m (throwM e)
   Handle ma ema -> do
     nma  <- final  @m ma

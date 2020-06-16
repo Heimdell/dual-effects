@@ -1,6 +1,4 @@
 
-module Main where
-
 import Data.IORef
 
 import Control.Monad.Reader
@@ -8,7 +6,6 @@ import Control.Monad.State
 import Control.Monad.Catch hiding (handle)
 import Control.Monad.Fix
 
-import Core
 import Effect.Final
 import Effect.Embed
 import Effect.Store
@@ -54,13 +51,13 @@ oldMain = do
   ref <- newIORef "bar"
   x <- flip runReaderT (And ref (And (2 :: Int) None))
     $ runM
-    $ embedToFinal @M
-    $ embedViaNat  @IO @M liftIO
-    $ asReader     @(Product [IORef String, Int]) @M
-    $ mergeEnv     @(IORef String) @[IORef String, Int]
-    $ mergeEnv     @Int            @[IORef String, Int]
-    $ errorViaIO   @M
-    $ storeViaRIO  @String @M
+    $ embedToFinal  @M
+    $ embedViaNat   @IO @M liftIO
+    $ asReader      @(Product [IORef String, Int]) @M
+    $ mergeEnv      @(IORef String) @[IORef String, Int]
+    $ mergeEnv      @Int            @[IORef String, Int]
+    $ errorViaCatch @M
+    $ storeViaRIO   @String @M
     $ debugTrace
     $ someEffect "foo"
   print x

@@ -3,7 +3,18 @@
   A weaker `Final`, only allows the embedding.
 -}
 
-module Effect.Embed where
+module Effect.Embed
+  ( -- * Interface
+    Embed
+  , embed
+
+    -- * Implementation
+  , embedToFinal
+  , embedViaNat
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Control.Monad.IO.Class
 
@@ -30,15 +41,15 @@ io act = send $ Embed $ liftIO @IO act
 
 embedToFinal
   :: forall n fs
-  .  (Members '[Final n] fs, Diag fs fs)
+  .  (Member (Final n) fs, Diag fs fs)
   => Eff (Embed n : fs)
   ~> Eff            fs
 embedToFinal = interpret \case
-  Embed na -> send (Embeds na)
+  Embed na -> embeds na
 
 embedViaNat
   :: forall m n fs
-  .  (Members '[Embed n] fs, Diag fs fs)
+  .  (Member (Embed n) fs, Diag fs fs)
   => (m ~> n)
   -> Eff (Embed m : fs)
   ~> Eff fs

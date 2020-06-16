@@ -10,11 +10,22 @@
 
   The fact that `Final` is nominal in @n@ and can't be made a `Functor`
   prevents me from making a `finalToFinal` method, like one in "polysemy".
-
-  The lack of `embeds` wrapper is intentional, use "Effect.Embed".
 -}
 
-module Effect.Final where
+module Effect.Final
+  ( -- * Interface
+    Final
+  , final
+  , final1
+  , embeds
+
+    -- * Runners
+  , runM
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Unsafe.Coerce
 
@@ -77,3 +88,6 @@ final1
   => (x -> Eff fs a)
   -> Eff fs (x -> n a)
 final1 act = send (Final1 act)
+
+embeds :: forall n fs a. Member (Final n) fs => n a -> Eff fs a
+embeds na = send (Embeds na)

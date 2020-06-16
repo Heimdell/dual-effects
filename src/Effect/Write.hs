@@ -6,7 +6,19 @@
   hold any properties if used in parallel processes.
 -}
 
-module Effect.Write where
+module Effect.Write
+  ( -- * Interface
+    Write
+  , say
+  , intercept
+
+    -- * Implementation
+  , writeToStore
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Core
 import Effect.Final

@@ -1,5 +1,17 @@
 
-module Effect.Trace where
+module Effect.Trace
+  ( -- * Interface
+    Trace
+  , track
+
+    -- * Implementation
+  , writeTrace
+  , debugTrace
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Data.String
 

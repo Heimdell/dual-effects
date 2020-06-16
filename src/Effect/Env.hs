@@ -3,7 +3,20 @@
   The `Reader` effect.
 -}
 
-module Effect.Env where
+module Effect.Env
+  ( -- * Interface
+    Env
+  , env
+  , override
+
+    -- * Implementations
+  , asReader
+  , mergeEnv
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Control.Monad.Reader
 

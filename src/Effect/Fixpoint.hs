@@ -3,7 +3,17 @@
   The `MonadFix` effect.
 -}
 
-module Effect.Fixpoint where
+module Effect.Fixpoint
+  ( -- * Interface
+    Fixpoint
+
+    -- * Implementation
+  , asFixpoint
+
+    -- * Re-exporting core
+  , module Core
+  )
+  where
 
 import Control.Monad.Fix
 
