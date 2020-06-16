@@ -4,6 +4,7 @@ module Main where
 import Data.IORef
 
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Catch hiding (handle)
 import Control.Monad.Fix
 
@@ -49,7 +50,7 @@ someEffect str = do
     liftIO $ putStrLn "hehe"
     return 42
 
-main = do
+oldMain = do
   ref <- newIORef "bar"
   x <- flip runReaderT (And ref (And (2 :: Int) None))
     $ runM
@@ -64,3 +65,32 @@ main = do
     $ someEffect "foo"
   print x
   print =<< readIORef ref
+
+countDown :: Member (Store Int) fs => Eff fs Int
+countDown = do
+  x <- retrieve
+  if x <= 0
+  then do
+    return x
+  else do
+    store (x - 1)
+    countDown
+
+countDown' :: MonadState Int m => m Int
+countDown' = do
+  x <- get
+  if x <= 0
+  then do
+    return x
+  else do
+    put (x - 1)
+    countDown'
+
+main = do
+  print
+    $ flip runState (10000000 :: Int)
+    $ countDown'
+    -- $ runM
+    -- $ embedToFinal @(State Int)
+    -- $ asState @Int @(State Int)
+    -- $ countDown

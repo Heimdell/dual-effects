@@ -58,7 +58,6 @@ import Data.Kind (Constraint)
 -- | Natural transformation. Used to hide the @x@ type variable.
 --
 type f  ~> g = forall x. f x -> g x
-data f <~> g = Iso { forth :: f ~> g, back :: g ~> f }
 
 -- | A list of effect interpreters.
 --
@@ -113,6 +112,7 @@ instance Member f fs => Member f (g : fs) where
 --
 --   It essentially asks the interpreter to do something.
 --
+{-# INLINE send #-}
 send :: forall f fs. (Effect f, Member f fs) => f (Eff fs) ~> Eff fs
 send fs = Eff \d -> dispatch d $ weave (`runEff` d) fs
 
@@ -136,15 +136,13 @@ run = (`runEff` skip)
 
 -- | Peel off one effect at a time.
 --
+{-# INLINE interpret #-}
 interpret
   :: forall f fs
   .  (Effect f, Diag fs fs)
   => (f  (Eff fs) ~> Eff fs)
   -> Eff (f : fs) ~> Eff fs
-interpret retract = go
-  where
-    go :: forall x. Eff (f : fs) x -> Eff fs x
-    go = (`runEff` (retract :/\ diag))
+interpret retract = (`runEff` (retract :/\ diag))
 
 -- | Make a @Eff gs@ out of @Eff fs@.
 --

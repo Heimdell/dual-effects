@@ -35,8 +35,8 @@ data Final n m a where
   --
   Embeds ::                       n a  -> Final n m a
 
--- fmapFinal :: Final n m a -> Final s m a
--- fmapFinal (Final ma) = Final ma
+-- fmapFinal :: (s ~> n) -> Final n m a -> Final s m a
+-- fmapFinal nat (Final ma) = unsafeCoerce $ Final ma
 
 -- weaveFinal :: (n ~> s) -> Final n m a -> Final s m a
 -- weaveFinal forth = \case
