@@ -25,3 +25,5 @@ The `Error` effect operates with `Exceptions`, so it is not `ExceptT`-like.
 Separate `State` or `Reader` effects can be combined. The `State` can be wired to work with `IORef`s in `ReaderT` context.
 
 Effects mostly delegate their implementations to the `Final` monad.
+
+You don't have to import [Core](src/Core.hs), all [Effects](src/Effect) are re-exporing it.
