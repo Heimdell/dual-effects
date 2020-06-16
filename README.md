@@ -19,9 +19,9 @@ It is kinda slow, thought - the countDown benchmark shows a ~100x slowdown (from
 The library is designed to be a layer over some `ReaderT Env IO` monad.
 
 Addidng certain effects autoimplements some standart typeclasses:
-`Fixpoint` -> `MonadFix`, `Error` -> `MonadThrow`/`MonadCatch`, `NonDet` -> `Alternative`, `Embed IO` -> `LiftIO`.
+`Fixpoint` -> `MonadFix`, `Error` -> `MonadThrow`/`MonadCatch`, `NonDet` -> `Alternative`, `Lift IO` -> `LiftIO`.
 
 The `Error` effect operates with `Exceptions`, so it is not `ExceptT`-like.
-Separate `State` or `Env` effects can be combined. The `State` can be wired to work with `IORef`s in `ReaderT` context.
+Separate `State` or `Reader` effects can be combined. The `State` can be wired to work with `IORef`s in `ReaderT` context.
 
 Effects mostly delegate their implementations to the `Final` monad.
