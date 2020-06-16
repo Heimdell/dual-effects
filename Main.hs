@@ -1,4 +1,6 @@
 
+module Main where
+
 import Data.IORef
 
 import Control.Monad.Reader
@@ -27,7 +29,10 @@ data Err = Err Double
 type M = ReaderT (Product [IORef String, Int]) IO
 
 someEffect
-  :: Members [Store String, Trace, Env Int, Error] fs
+  :: forall m fs
+  .  ( Members [Store String, Trace, Env Int, Error, Embed IO] fs
+     , Diag fs fs
+     )
   => String
   -> Eff fs Int
 someEffect str = do
@@ -37,10 +42,11 @@ someEffect str = do
       track $ "E is " ++ show e
       if e <= 0
       then do
-        raise (Err 1.0)
+        throwM (Err 1.0)
       else do
         return e
-  `handle` \(Err d) -> do
+  `catch` \(Err d) -> do
+    liftIO $ putStrLn "hehe"
     return 42
 
 main = do
@@ -48,6 +54,7 @@ main = do
   x <- flip runReaderT (And ref (And (2 :: Int) None))
     $ runM
     $ embedToFinal @M
+    $ embedViaNat @IO @M liftIO
     $ asReader                 @(Product [IORef String, Int]) @M
     $ mergeEnv @(IORef String) @[IORef String, Int]
     $ mergeEnv @Int            @[IORef String, Int]

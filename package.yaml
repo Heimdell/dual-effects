@@ -27,6 +27,8 @@ default-extensions:
 - LambdaCase
 - DerivingStrategies
 - DeriveAnyClass
+- DeriveFunctor
+- StandaloneDeriving
 
 library:
   source-dirs:

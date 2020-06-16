@@ -1,4 +1,11 @@
 
+{-|
+  The `WriterMonad` effect.
+
+  I can't guarantee that if you route implementation via `IORef` it will
+  hold any properties if used in parallel processes.
+-}
+
 module Effect.Write where
 
 import Core
@@ -35,13 +42,13 @@ writeToStore = interpret \case
     store old
     return (new, res)
 
-ignoreWrite
-  :: forall w fs
-  .  (Monoid w, Diag fs fs)
-  => Eff (Write w : fs)
-  ~> Eff fs
-ignoreWrite = interpret \case
-  Say       _  -> return ()
-  Intercept ma -> do
-    a <- ma
-    return (mempty, a)
+-- ignoreWrite
+--   :: forall w fs
+--   .  (Monoid w, Diag fs fs)
+--   => Eff (Write w : fs)
+--   ~> Eff fs
+-- ignoreWrite = interpret \case
+--   Say       _  -> return ()
+--   Intercept ma -> do
+--     a <- ma
+--     return (mempty, a)

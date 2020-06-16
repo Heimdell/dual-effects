@@ -1,4 +1,11 @@
 
+{-|
+  The `Alternative` effect.
+
+  I can't do the "return any alternative holding the result" as "polysemy" does,
+  because I only `interpret` and it is not allowed to change the effect result.
+-}
+
 module Effect.NonDet where
 
 import Control.Applicative
@@ -7,6 +14,7 @@ import Core
 import Effect.Final
 import Effect.Embed
 
+-- The messages.
 data NonDet m a where
   Loose  :: NonDet m a
   Choose :: m a -> m a -> NonDet m a
@@ -25,6 +33,7 @@ instance Member NonDet fs => Alternative (Eff fs) where
   empty = loose
   (<|>) = choose
 
+-- | Delegate to the final monad.
 asAlternative
   :: forall m fs
   .  (Members [Final m, Embed m] fs, Diag fs fs, Alternative m)

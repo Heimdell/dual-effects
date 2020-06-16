@@ -1,4 +1,8 @@
 
+{-|
+  The `Reader` effect.
+-}
+
 module Effect.Env where
 
 import Control.Monad.Reader
@@ -8,8 +12,16 @@ import Effect.Final
 import Effect.Embed
 import Product
 
+-- | The messages.
+--
 data Env e m a where
+
+  -- | Get current environment.
+  --
   Env      ::                    Env e m e
+
+  -- | Override the environment for some action.
+  --
   Override :: (e -> e) -> m a -> Env e m a
 
 instance Effect (Env e) where
@@ -22,6 +34,9 @@ env = send Env
 override :: forall e fs a. Member (Env e) fs => (e -> e) -> Eff fs a -> Eff fs a
 override d ma = send (Override d ma)
 
+-- | Delegate the implementation to the `MonadReader` capabilities of the final
+--   monad.
+--
 asReader
   :: forall e m fs
   .  (Members [Final m, Embed m] fs, Diag fs fs, MonadReader e m)
@@ -33,6 +48,9 @@ asReader = interpret \case
     nma <- final @m ma
     embed @m $ local f nma
 
+-- | Delegate the implementation to the @Env (Product xs)@ effect, where
+--   @xs@ contain the current environment @e@.
+--
 mergeEnv
   :: forall x xs fs
   .  (Contains x xs, Member (Env (Product xs)) fs, Diag fs fs)

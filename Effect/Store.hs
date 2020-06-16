@@ -1,4 +1,8 @@
 
+{-|
+  The `MonadState` effect.
+-}
+
 module Effect.Store where
 
 import Control.Monad.IO.Class
@@ -27,6 +31,7 @@ store s = send (Store s)
 change :: forall s fs. Member (Store s) fs => (s -> s) -> Eff fs ()
 change f = store . f =<< retrieve
 
+-- | Implement via `IORef`.
 storeViaRIO
   :: forall e m fs
   .  (MonadIO m, Members [Env (IORef e), Embed m] fs, Diag fs fs)
@@ -41,6 +46,7 @@ storeViaRIO = interpret \case
     ref <- env
     embed @m $ liftIO $ writeIORef ref s
 
+-- | Implement like `mergeEnv`.
 mergeStore
   :: forall x xs fs
   .  (Contains x xs, Member (Store (Product xs)) fs, Diag fs fs)
@@ -54,6 +60,7 @@ mergeStore = interpret \case
   Store s -> do
     change @(Product xs) $ modElem $ const s
 
+-- | Delegate to final monad.
 asState
   :: forall e m fs
   .  (Members '[Embed m] fs, Diag fs fs, MonadState e m)
