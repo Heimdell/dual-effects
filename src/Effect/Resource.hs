@@ -18,7 +18,7 @@ import Control.Monad.Catch hiding (finally)
 import Core
 
 import Effect.Final
-import Effect.Embed
+import Effect.Lift
 
 data Resource m a where
   Bracket :: forall a b c m. m a -> (a -> m c) -> (a -> m b) -> Resource m b
@@ -34,7 +34,7 @@ finally act dealloc = protect (pure ()) (const dealloc) (const act)
 
 asMask
   :: forall m fs
-  .  (MonadMask m, Members [Embed m, Final m] fs, Diag fs fs)
+  .  (MonadMask m, Members [Lift m, Final m] fs, Diag fs fs)
   => Eff (Resource : fs)
   ~> Eff fs
 asMask = interpret \case
@@ -42,4 +42,4 @@ asMask = interpret \case
     nalloc   <- final  @m alloc
     ndealloc <- final1 @m dealloc
     nact     <- final1 @m act
-    embed @m $ bracket nalloc ndealloc nact
+    lift @m $ bracket nalloc ndealloc nact

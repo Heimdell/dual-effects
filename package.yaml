@@ -8,7 +8,6 @@ dependencies:
 default-extensions:
 - GADTs
 - BlockArguments
-- KindSignatures
 - DataKinds
 - RankNTypes
 - TypeOperators
@@ -18,7 +17,6 @@ default-extensions:
 - UndecidableInstances
 - ConstraintKinds
 - FlexibleContexts
-- MagicHash
 - TypeApplications
 - ScopedTypeVariables
 - FlexibleInstances
@@ -27,7 +25,6 @@ default-extensions:
 - LambdaCase
 - DerivingStrategies
 - DeriveAnyClass
-- DeriveFunctor
 - StandaloneDeriving
 
 library:

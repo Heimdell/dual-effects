@@ -1,19 +1,18 @@
 
 import Data.IORef
 
-import Control.Monad.Reader
-import Control.Monad.State
-import Control.Monad.Catch hiding (handle)
-import Control.Monad.Fix
+import Control.Monad.Reader (ReaderT, runReaderT)
+import Control.Monad.Catch
+import Control.Monad.IO.Class
 
 import Effect.Final
-import Effect.Embed
-import Effect.Store
-import Effect.Env
+import Effect.Lift
+import Effect.State
+import Effect.Reader
 import Effect.Error
 import Effect.Fixpoint
 import Effect.NonDet
-import Effect.Write
+import Effect.Writer
 import Effect.Resource
 import Effect.Trace
 import Product
@@ -28,16 +27,16 @@ type M = ReaderT (Product [IORef String, Int]) IO
 
 someEffect
   :: forall m fs
-  .  ( Members [Store String, Trace, Env Int, Error, Embed IO] fs
+  .  ( Members [State String, Trace, Reader Int, Error, Lift IO] fs
      , Diag fs fs
      )
   => String
   -> Eff fs Int
 someEffect str = do
-    override @Int (subtract 2) do
+    local @Int (subtract 2) do
       change \s -> str <> s
-      e <- env
-      track $ "E is " ++ show e
+      e <- ask
+      trace $ "E is " ++ show e
       if e <= 0
       then do
         throwM (Err 1.0)
@@ -47,12 +46,12 @@ someEffect str = do
     liftIO $ putStrLn "hehe"
     return 42
 
-oldMain = do
+main = do
   ref <- newIORef "bar"
   x <- flip runReaderT (And ref (And (2 :: Int) None))
     $ runM
-    $ embedToFinal  @M
-    $ embedViaNat   @IO @M liftIO
+    $ liftToFinal   @M
+    $ liftViaNat    @IO @M liftIO
     $ asReader      @(Product [IORef String, Int]) @M
     $ mergeEnv      @(IORef String) @[IORef String, Int]
     $ mergeEnv      @Int            @[IORef String, Int]
@@ -63,31 +62,31 @@ oldMain = do
   print x
   print =<< readIORef ref
 
-countDown :: Member (Store Int) fs => Eff fs Int
-countDown = do
-  x <- retrieve
-  if x <= 0
-  then do
-    return x
-  else do
-    store (x - 1)
-    countDown
+-- countDown :: Member (State Int) fs => Eff fs Int
+-- countDown = do
+--   x <- retrieve
+--   if x <= 0
+--   then do
+--     return x
+--   else do
+--     store (x - 1)
+--     countDown
 
-countDown' :: MonadState Int m => m Int
-countDown' = do
-  x <- get
-  if x <= 0
-  then do
-    return x
-  else do
-    put (x - 1)
-    countDown'
+-- countDown' :: MonadState Int m => m Int
+-- countDown' = do
+--   x <- get
+--   if x <= 0
+--   then do
+--     return x
+--   else do
+--     put (x - 1)
+--     countDown'
 
-main = do
-  print
-    $ flip runState (10000000 :: Int)
-    $ countDown'
-    -- $ runM
-    -- $ embedToFinal @(State Int)
-    -- $ asState @Int @(State Int)
-    -- $ countDown
+-- main = do
+--   print
+--     $ flip runState (10000000 :: Int)
+--     $ countDown'
+--     -- $ runM
+--     -- $ embedToFinal @(State Int)
+--     -- $ asState @Int @(State Int)
+--     -- $ countDown

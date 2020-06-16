@@ -3,11 +3,11 @@
   The `Reader` effect.
 -}
 
-module Effect.Env
+module Effect.Reader
   ( -- * Interface
-    Env
-  , env
-  , override
+    Reader
+  , ask
+  , local
 
     -- * Implementations
   , asReader
@@ -18,61 +18,61 @@ module Effect.Env
   )
   where
 
-import Control.Monad.Reader
+import qualified Control.Monad.Reader as MTL
 
 import Core
 import Effect.Final
-import Effect.Embed
+import Effect.Lift
 import Product
 
 -- | The messages.
 --
-data Env e m a where
+data Reader e m a where
 
   -- | Get current environment.
   --
-  Env      ::                    Env e m e
+  Ask      ::                    Reader e m e
 
   -- | Override the environment for some action.
   --
-  Override :: (e -> e) -> m a -> Env e m a
+  Override :: (e -> e) -> m a -> Reader e m a
 
-instance Effect (Env e) where
-  weave f  Env            = Env
+instance Effect (Reader e) where
+  weave f  Ask            = Ask
   weave f (Override d ma) = Override d (f ma)
 
-env :: forall e fs. Member (Env e) fs => Eff fs e
-env = send Env
+ask :: forall e fs. Member (Reader e) fs => Eff fs e
+ask = send Ask
 
-override :: forall e fs a. Member (Env e) fs => (e -> e) -> Eff fs a -> Eff fs a
-override d ma = send (Override d ma)
+local :: forall e fs a. Member (Reader e) fs => (e -> e) -> Eff fs a -> Eff fs a
+local d ma = send (Override d ma)
 
 -- | Delegate the implementation to the `MonadReader` capabilities of the final
 --   monad.
 --
 asReader
   :: forall e m fs
-  .  (Members [Final m, Embed m] fs, Diag fs fs, MonadReader e m)
-  => Eff (Env e : fs)
+  .  (Members [Final m, Lift m] fs, Diag fs fs, MTL.MonadReader e m)
+  => Eff (Reader e : fs)
   ~> Eff fs
 asReader = interpret \case
-  Env -> embed @m ask
+  Ask -> lift @m MTL.ask
   Override f ma -> do
     nma <- final @m ma
-    embed @m $ local f nma
+    lift @m $ MTL.local f nma
 
 -- | Delegate the implementation to the @Env (Product xs)@ effect, where
 --   @xs@ contain the current environment @e@.
 --
 mergeEnv
   :: forall x xs fs
-  .  (Contains x xs, Member (Env (Product xs)) fs, Diag fs fs)
-  => Eff (Env x : fs)
+  .  (Contains x xs, Member (Reader (Product xs)) fs, Diag fs fs)
+  => Eff (Reader x : fs)
   ~> Eff          fs
 mergeEnv = interpret \case
-  Env -> do
-    e <- env @(Product xs)
+  Ask -> do
+    e <- ask @(Product xs)
     return (getElem e)
 
   Override f ma -> do
-    override @(Product xs) (modElem f) ma
+    local @(Product xs) (modElem f) ma

@@ -5,7 +5,7 @@
 
   Since the ouly place the `Final` can be interpreted is the last one,
   the "current" monad becomes the "final" one become the same thing and
-  therefore the interpretation is trivial. `Embeds` just does the action and
+  therefore the interpretation is trivial. `Lifts` just does the action and
   both `Final` and `Final1` just return them.
 
   The fact that `Final` is nominal in @n@ and can't be made a `Functor`
@@ -17,7 +17,7 @@ module Effect.Final
     Final
   , final
   , final1
-  , embeds
+  , lifts
 
     -- * Runners
   , runM
@@ -44,7 +44,7 @@ data Final n m a where
 
   -- | Embed an action from final-monad into current monad.
   --
-  Embeds ::                       n a  -> Final n m a
+  Lifts  ::                       n a  -> Final n m a
 
 -- fmapFinal :: (s ~> n) -> Final n m a -> Final s m a
 -- fmapFinal nat (Final ma) = unsafeCoerce $ Final ma
@@ -53,7 +53,7 @@ data Final n m a where
 -- weaveFinal forth = \case
 --   Final   ma -> unsafeCoerce $ Final ma
 --   Final1 ema -> unsafeCoerce $ Final1 ema
---   Embeds  na -> Embeds $ forth na
+--   Lifts  na -> Lifts $ forth na
 
 -- | If `Final m` the single remaining effect, convert the action into @m@.
 --
@@ -63,7 +63,7 @@ runM eff = runEff eff (handleFinal /\ skip)
     handleFinal :: Final m m ~> m
     handleFinal = \case
       Final   na -> return na
-      Embeds  na -> na
+      Lifts  na -> na
       Final1 ena -> return ena
 
 -- finalViaNat
@@ -77,7 +77,7 @@ runM eff = runEff eff (handleFinal /\ skip)
 instance Effect (Final n) where
   weave f (Final  ma) = Final  (f   ma)
   weave f (Final1 ma) = Final1 (f . ma)
-  weave f (Embeds na) = Embeds na
+  weave f (Lifts na) = Lifts na
 
 final :: forall n fs a. Member (Final n) fs => Eff fs a -> Eff fs (n a)
 final act = send (Final act)
@@ -89,5 +89,5 @@ final1
   -> Eff fs (x -> n a)
 final1 act = send (Final1 act)
 
-embeds :: forall n fs a. Member (Final n) fs => n a -> Eff fs a
-embeds na = send (Embeds na)
+lifts :: forall n fs a. Member (Final n) fs => n a -> Eff fs a
+lifts na = send (Lifts na)
