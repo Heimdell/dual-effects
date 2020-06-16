@@ -7,7 +7,7 @@ import Effect.Embed
 import Effect.Store
 
 data Write w m a where
-  Say       :: w -> Write w m ()
+  Say       :: w   -> Write w m ()
   Intercept :: m a -> Write w m (w, a)
 
 instance Effect (Write w) where
@@ -17,7 +17,8 @@ instance Effect (Write w) where
 say :: forall w fs. Member (Write w) fs => w -> Eff fs ()
 say w = send (Say w)
 
-intercept ::forall w fs. Member (Write w) fs => w -> Eff fs ()
+intercept :: forall w fs a. Member (Write w) fs => Eff fs a -> Eff fs (w, a)
+intercept act = send (Intercept act)
 
 writeToStore
   :: forall w fs

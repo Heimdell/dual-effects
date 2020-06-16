@@ -4,7 +4,6 @@ module Core
   , (/\)
   , skip
   , Eff (..)
-  , runEff
   , send
   , Member
   , Members
@@ -17,10 +16,8 @@ module Core
 import Control.Monad (liftM, ap)
 import Control.Monad.Fix
 
-import Data.Coerce (Coercible)
+import Data.Coerce (Coercible, coerce)
 import Data.Kind (Constraint)
-
-import Unsafe.Coerce (unsafeCoerce)
 
 type f ~> g = forall x. f x -> g x
 
@@ -48,11 +45,9 @@ instance Monad (Eff fs) where
     a <- run d
     callb a `runEff` d
 
-type Members fs gs = (Members' fs gs, Diag gs gs)
-
-type family Members' fs gs :: Constraint where
-  Members' '[]       gs = ()
-  Members'  (f : fs) gs = (Member f gs, Members' fs gs)
+type family Members fs gs :: Constraint where
+  Members '[]       gs = ()
+  Members  (f : fs) gs = (Member f gs, Members fs gs)
 
 class Member f fs where
   dispatch :: Dispatch fs m -> f m ~> m
@@ -68,6 +63,15 @@ send fs = Eff \d -> dispatch d $ weave (`runEff` d) fs
 
 class Effect f where
   weave :: (n ~> m) -> (f n ~> f m)
+
+  default weave
+    :: (forall x. Coercible (f n x) (f m x))
+    => (n ~> m)
+    -> (f n ~> f m)
+  weave f = coerce
+
+run :: Monad m => Eff '[] ~> m
+run = (`runEff` skip)
 
 interpret
   :: forall f fs

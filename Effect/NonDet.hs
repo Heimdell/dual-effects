@@ -8,21 +8,21 @@ import Effect.Final
 import Effect.Embed
 
 data NonDet m a where
-  Empty  :: NonDet m a
+  Loose  :: NonDet m a
   Choose :: m a -> m a -> NonDet m a
 
 instance Effect NonDet where
-  weave f  Empty       = Empty
+  weave f  Loose       = Loose
   weave f (Choose a b) = Choose (f a) (f b)
 
-stop :: Member NonDet fs => Eff fs a
-stop = send Empty
+loose :: Member NonDet fs => Eff fs a
+loose = send Loose
 
 choose :: Member NonDet fs => Eff fs a -> Eff fs a -> Eff fs a
 choose a b = send (Choose a b)
 
 instance Member NonDet fs => Alternative (Eff fs) where
-  empty = stop
+  empty = loose
   (<|>) = choose
 
 asAlternative
@@ -31,7 +31,7 @@ asAlternative
   => Eff (NonDet : fs)
   ~> Eff fs
 asAlternative = interpret \case
-  Empty -> embed @m $ empty
+  Loose -> embed @m $ empty
   Choose a b -> do
     na <- final @m a
     nb <- final @m b

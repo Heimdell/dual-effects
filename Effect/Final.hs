@@ -4,9 +4,9 @@ module Effect.Final where
 import Core
 
 data Final n m a where
-  Final  :: m a -> Final n m (n a)
+  Final  ::                       m a  -> Final n m (n a)
   Final1 :: forall n m a x. (x -> m a) -> Final n m (x -> n a)
-  Embeds :: n a -> Final n m a
+  Embeds ::                       n a  -> Final n m a
 
 runM :: forall m. Monad m => Eff '[Final m] ~> m
 runM eff = runEff eff (handleFinal /\ skip)
@@ -29,5 +29,5 @@ final1
   :: forall n fs x a
   .  Member (Final n) fs
   => (x -> Eff fs a)
-  ->  Eff fs (x -> n a)
+  -> Eff fs (x -> n a)
 final1 act = send (Final1 act)

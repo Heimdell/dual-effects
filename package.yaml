@@ -25,6 +25,8 @@ default-extensions:
 - DefaultSignatures
 - QuantifiedConstraints
 - LambdaCase
+- DerivingStrategies
+- DeriveAnyClass
 
 library:
   source-dirs:

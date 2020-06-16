@@ -5,6 +5,7 @@ import Control.Monad.IO.Class
 import Control.Monad.State
 
 import Data.IORef
+import Data.Coerce
 
 import Core
 import Effect.Final
@@ -13,12 +14,9 @@ import Effect.Env
 import Product
 
 data Store s (m :: * -> *) a where
-  Retrieve :: Store s m s
-  Store :: s -> Store s m ()
-
-instance Effect (Store s) where
-  weave f Retrieve = Retrieve
-  weave f (Store s) = Store s
+  Retrieve ::      Store s m s
+  Store    :: s -> Store s m ()
+  deriving anyclass Effect
 
 retrieve :: forall s fs. Member (Store s) fs => Eff fs s
 retrieve = send Retrieve
