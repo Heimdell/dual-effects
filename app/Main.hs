@@ -9,7 +9,7 @@ import Effect.Final
 import Effect.Lift
 import Effect.State
 import Effect.Reader
-import Effect.Error
+import Effect.Except
 import Effect.Fixpoint
 import Effect.NonDet
 import Effect.Writer
@@ -27,7 +27,7 @@ type M = ReaderT (Product [IORef String, Int]) IO
 
 someEffect
   :: forall m fs
-  .  ( Members [State String, Trace, Reader Int, Error, Lift IO] fs
+  .  ( Members [State String, Trace, Reader Int, Except, Lift IO] fs
      , Diag fs fs
      )
   => String

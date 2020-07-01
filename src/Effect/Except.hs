@@ -3,9 +3,9 @@
   The `MonadThrow`/`MonadCatch` effect.
 -}
 
-module Effect.Error
+module Effect.Except
   ( -- * Interface
-    Error
+    Except
   -- , raise
   -- , handle
 
@@ -27,20 +27,20 @@ import Effect.Lift
 --
 --   Use `throwM`/`catch`.
 --
-data Error m a where
-  Raise  :: Exception e => e -> Error m a
-  Handle :: Exception e => m a -> (e -> m a) -> Error m a
+data Except m a where
+  Raise  :: Exception e => e -> Except m a
+  Handle :: Exception e => m a -> (e -> m a) -> Except m a
 
-instance Effect Error where
+instance Effect Except where
   weave f (Raise e)       = Raise e
   weave f (Handle ma ema) = Handle (f ma) (f . ema)
 
--- raise :: forall e fs a. (Exception e, Member Error fs) => e -> Eff fs a
+-- raise :: forall e fs a. (Exception e, Member Except fs) => e -> Eff fs a
 -- raise e = send (Raise e)
 
 -- handle
 --   :: forall e fs a
---   .  (Member Error fs, Exception e)
+--   .  (Member Except fs, Exception e)
 --   => Eff fs a
 --   -> (e -> Eff fs a)
 --   -> Eff fs a
@@ -51,7 +51,7 @@ instance Effect Error where
 errorViaCatch
   :: forall m fs
   .  (MonadCatch m, Members '[Lift m, Final m] fs, Diag fs fs)
-  => Eff (Error : fs)
+  => Eff (Except : fs)
   ~> Eff          fs
 errorViaCatch = interpret \case
   Raise  e      -> lift @m (throwM e)
@@ -60,8 +60,8 @@ errorViaCatch = interpret \case
     nema <- final1 @m ema
     lift $ catch nma nema
 
-instance Member Error fs => MonadThrow (Eff fs) where
+instance Member Except fs => MonadThrow (Eff fs) where
   throwM e = send (Raise e)
 
-instance Member Error fs => MonadCatch (Eff fs) where
+instance Member Except fs => MonadCatch (Eff fs) where
   catch ma ema = send (Handle ma ema)
