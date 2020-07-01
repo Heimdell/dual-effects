@@ -4,20 +4,20 @@
 -}
 
 module Effect.Reader
-  ( -- * Interface
-    Reader
-  , ask
-  , local
+  -- ( -- * Interface
+  --   Reader
+  -- , ask
+  -- , local
 
-    -- * Implementations
-  , asReader
-  , mergeEnv
-  , runRIO
-  , runIOWith
+  --   -- * Implementations
+  -- , asReader
+  -- , mergeEnv
+  -- , runRIO
+  -- , runIOWith
 
-    -- * Re-exporting core
-  , module Core
-  )
+  --   -- * Re-exporting core
+  -- , module Core
+  -- )
   where
 
 import qualified Control.Monad.Reader as MTL

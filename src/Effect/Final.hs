@@ -13,18 +13,18 @@
 -}
 
 module Effect.Final
-  ( -- * Interface
-    Final
-  , final
-  , final1
-  , lifts
+  -- ( -- * Interface
+  --   Final
+  -- , final
+  -- , final1
+  -- , lifts
 
-    -- * Runners
-  , runM
+  --   -- * Runners
+  -- , runM
 
-    -- * Re-exporting core
-  , module Core
-  )
+  --   -- * Re-exporting core
+  -- , module Core
+  -- )
   where
 
 import Unsafe.Coerce

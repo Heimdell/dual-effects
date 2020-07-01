@@ -4,16 +4,16 @@
 -}
 
 module Effect.Lift
-  ( -- * Interface
-    Lift
-  , lift
+  -- ( -- * Interface
+  --   Lift
+  -- , lift
 
-    -- * Implementation
-  , liftToFinal
-  , liftViaNat
-    -- * Re-exporting core
-  , module Core
-  )
+  --   -- * Implementation
+  -- , liftToFinal
+  -- , liftViaNat
+  --   -- * Re-exporting core
+  -- , module Core
+  -- )
   where
 
 import Control.Monad.IO.Class

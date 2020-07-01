@@ -7,17 +7,17 @@
 -}
 
 module Effect.Writer
-  ( -- * Interface
-    Writer
-  , tell
-  , listen
+  -- ( -- * Interface
+  --   Writer
+  -- , tell
+  -- , listen
 
-    -- * Implementation
-  , writerToState
+  --   -- * Implementation
+  -- , writerToState
 
-    -- * Re-exporting core
-  , module Core
-  )
+  --   -- * Re-exporting core
+  -- , module Core
+  -- )
   where
 
 import Core

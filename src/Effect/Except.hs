@@ -4,17 +4,17 @@
 -}
 
 module Effect.Except
-  ( -- * Interface
-    Except
-  -- , raise
-  -- , handle
+  -- ( -- * Interface
+  --   Except
+  -- -- , raise
+  -- -- , handle
 
-    -- * Implementations
-  , errorViaCatch
+  --   -- * Implementations
+  -- , errorViaCatch
 
-    -- * Re-exporting core
-  , module Core
-  )
+  --   -- * Re-exporting core
+  -- , module Core
+  -- )
   where
 
 import Control.Monad.Catch hiding (handle)

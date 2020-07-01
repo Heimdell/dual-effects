@@ -4,21 +4,21 @@
 -}
 
 module Effect.State
-  ( -- * Interface
-    State
-  , get
-  , gets
-  , put
-  , modify
+  -- ( -- * Interface
+  --   State
+  -- , get
+  -- , gets
+  -- , put
+  -- , modify
 
-    -- * Implementations
-  , storeViaRIO
-  , mergeState
-  , asState
+  --   -- * Implementations
+  -- , storeViaRIO
+  -- , mergeState
+  -- , asState
 
-    -- * Re-exporting core
-  , module Core
-  )
+  --   -- * Re-exporting core
+  -- , module Core
+  -- )
   where
 
 import Control.Monad.IO.Class
