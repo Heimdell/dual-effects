@@ -12,6 +12,8 @@ module Effect.Reader
     -- * Implementations
   , asReader
   , mergeEnv
+  , runRIO
+  , runIOWith
 
     -- * Re-exporting core
   , module Core
@@ -76,3 +78,22 @@ mergeEnv = interpret \case
 
   Override f ma -> do
     local @(Product xs) (modElem f) ma
+
+runRIO
+  :: forall e a
+  .  Eff [Reader e, Final (MTL.ReaderT e IO)] a
+  -> MTL.ReaderT e IO a
+runRIO = runM . runReader
+  where
+    runReader = interpret \case
+      Ask -> lifts @(MTL.ReaderT e IO) MTL.ask
+      Override f ma -> do
+        nma <- final @(MTL.ReaderT e IO) ma
+        lifts @(MTL.ReaderT e IO) $ MTL.local f nma
+
+runIOWith
+  :: forall e a
+  .  e
+  -> Eff [Reader e, Final (MTL.ReaderT e IO)] a
+  -> IO a
+runIOWith e = (`MTL.runReaderT` e) . runRIO
