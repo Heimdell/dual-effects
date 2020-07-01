@@ -44,11 +44,11 @@ writerToState
   => Eff (Writer w : fs)
   ~> Eff fs
 writerToState = interpret \case
-  Say w -> change (w <>)
+  Say w -> modify (w <>)
   Intercept ma -> do
-    old <- retrieve @w
-    store @w mempty
+    old <- get @w
+    put @w mempty
     res <- ma
-    new <- retrieve
-    store old
+    new <- get
+    modify (old <>)
     return (new, res)

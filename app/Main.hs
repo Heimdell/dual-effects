@@ -34,7 +34,7 @@ someEffect
   -> Eff fs Int
 someEffect str = do
     local @Int (subtract 2) do
-      change \s -> str <> s
+      modify (str <>)
       e <- ask
       trace $ "E is " ++ show e
       if e <= 0

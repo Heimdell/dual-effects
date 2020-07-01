@@ -6,9 +6,9 @@
 module Effect.State
   ( -- * Interface
     State
-  , retrieve
-  , store
-  , change
+  , get
+  , put
+  , modify
 
     -- * Implementations
   , storeViaRIO
@@ -37,14 +37,16 @@ data State s (m :: * -> *) a where
   Put :: s -> State s m ()
   deriving anyclass Effect
 
-retrieve :: forall s fs. Member (State s) fs => Eff fs s
-retrieve = send Get
+get :: forall s fs. Member (State s) fs => Eff fs s
+get = send Get
 
-store :: forall s fs. Member (State s) fs => s -> Eff fs ()
-store s = send (Put s)
+gets f = f <$> get
 
-change :: forall s fs. Member (State s) fs => (s -> s) -> Eff fs ()
-change f = store . f =<< retrieve
+put :: forall s fs. Member (State s) fs => s -> Eff fs ()
+put s = send (Put s)
+
+modify :: forall s fs. Member (State s) fs => (s -> s) -> Eff fs ()
+modify f = put . f =<< get
 
 -- | Implement via `IORef`.
 storeViaRIO
@@ -69,11 +71,11 @@ mergeState
   ~> Eff            fs
 mergeState = interpret \case
   Get -> do
-    e <- retrieve @(Product xs)
+    e <- get @(Product xs)
     return (getElem e)
 
   Put s -> do
-    change @(Product xs) $ modElem $ const s
+    modify @(Product xs) $ modElem $ const s
 
 -- | Delegate to final monad.
 asState
