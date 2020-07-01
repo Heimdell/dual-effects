@@ -6,8 +6,8 @@ module Product where
 
 -- | `Product xs` contains elements of each of the types from the `xs` list.
 data Product xs where
-  And  :: x -> Product xs -> Product (x : xs)
-  None :: Product '[]
+  Cons :: x -> Product xs -> Product (x : xs)
+  Nil  :: Product '[]
 
 -- | Find/modify the element with a given type.
 --
@@ -18,12 +18,12 @@ class Contains x xs where
   modElem :: (x -> x) -> Product xs -> Product xs
 
 instance {-# OVERLAPS #-} Contains x (x : xs) where
-  getElem   (And x _) = x
-  modElem f (And x xs) = And (f x) xs
+  getElem   (Cons x _) = x
+  modElem f (Cons x xs) = Cons (f x) xs
 
 instance Contains x xs => Contains x (y : xs) where
-  getElem   (And _ xs) = getElem xs
-  modElem f (And x xs) = And x (modElem f xs)
+  getElem   (Cons _ xs) = getElem xs
+  modElem f (Cons x xs) = Cons x (modElem f xs)
 
 -- | Add a name to the type.
 --

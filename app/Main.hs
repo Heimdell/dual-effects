@@ -48,7 +48,7 @@ someEffect str = do
 
 main = do
   ref <- newIORef "bar"
-  x <- flip runReaderT (And ref (And (2 :: Int) None))
+  x <- flip runReaderT (Cons ref (Cons (2 :: Int) Nil))
     $ runM
     $ liftToFinal   @M
     $ liftViaNat    @IO @M liftIO
