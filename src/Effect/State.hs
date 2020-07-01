@@ -7,6 +7,7 @@ module Effect.State
   ( -- * Interface
     State
   , get
+  , gets
   , put
   , modify
 
