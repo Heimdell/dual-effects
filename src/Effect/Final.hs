@@ -9,22 +9,22 @@
   both `Final` and `Final1` just return them.
 
   The fact that `Final` is nominal in @n@ and can't be made a `Functor`
-  prevents me from making a `finalToFinal` method, like one in "polysemy".
+  prevents me from making a @finalToFinal@ method, like one in "polysemy".
 -}
 
 module Effect.Final
-  -- ( -- * Interface
-  --   Final
-  -- , final
-  -- , final1
-  -- , lifts
+  ( -- * Interface
+    Final
+  , final
+  , final1
+  , lifts
 
-  --   -- * Runners
-  -- , runM
+    -- * Runners
+  , runM
 
-  --   -- * Re-exporting core
-  -- , module Core
-  -- )
+    -- * Re-exporting core
+  , module Core
+  )
   where
 
 import Unsafe.Coerce
@@ -45,15 +45,6 @@ data Final n m a where
   -- | Embed an action from final-monad into current monad.
   --
   Lifts  ::                       n a  -> Final n m a
-
--- fmapFinal :: (s ~> n) -> Final n m a -> Final s m a
--- fmapFinal nat (Final ma) = unsafeCoerce $ Final ma
-
--- weaveFinal :: (n ~> s) -> Final n m a -> Final s m a
--- weaveFinal forth = \case
---   Final   ma -> unsafeCoerce $ Final ma
---   Final1 ema -> unsafeCoerce $ Final1 ema
---   Lifts  na -> Lifts $ forth na
 
 -- | If `Final m` the single remaining effect, convert the action into @m@.
 --
@@ -77,17 +68,20 @@ runM eff = runEff eff (handleFinal /\ skip)
 instance Effect (Final n) where
   weave f (Final  ma) = Final  (f   ma)
   weave f (Final1 ma) = Final1 (f . ma)
-  weave f (Lifts na) = Lifts na
+  weave f (Lifts  na) = Lifts       na
 
-final :: forall n fs a. Member (Final n) fs => Eff fs a -> Eff fs (n a)
+-- | Convert an action to the one in final monad.
+final :: forall n fs a. Members '[Final n] fs => Eff fs a -> Eff fs (n a)
 final act = send (Final act)
 
+-- | Convert a parametrised action to the one in final monad.
 final1
   :: forall n fs x a
-  .  Member (Final n) fs
+  .  Members '[Final n] fs
   => (x -> Eff fs a)
   -> Eff fs (x -> n a)
 final1 act = send (Final1 act)
 
-lifts :: forall n fs a. Member (Final n) fs => n a -> Eff fs a
+-- | Lift an action from final monad.
+lifts :: forall n fs a. Members '[Final n] fs => n a -> Eff fs a
 lifts na = send (Lifts na)

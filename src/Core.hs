@@ -7,7 +7,7 @@
 
   The `Eff` is internally a function from dispatchers list to any monad.
   The type is parametrised with a list of effects. It contains effects by
-  "closing over" then, by using `send` function, that transforms some effect
+  "closing over" them by using `send` function, that transforms some effect
   into a computation tree.
 
   The call of `send` denotes a place for invocation of some service.
@@ -20,7 +20,7 @@
 
   The `Effect` interface provides `weave` function that allows to do that.
 
-  To run the effect, use either `run` (why), `runEff` with dispatchers or
+  To run the effect, use either `runEff` with dispatchers or
   `Effect.Final.runM`.
 -}
 
@@ -28,16 +28,12 @@ module Core
   ( -- * Carrier
     Eff
   , runEff
-  , run
-  , interpret
-  , expand
+  , plug
   , send
 
     -- * Properties
   , Effect (..)
-  , Member
   , Members
-  , Diag
 
     -- * Interpreter
   , Dispatch
@@ -79,7 +75,10 @@ skip = Empty
 
 -- | The effect carrier.
 --
-newtype Eff fs a = Eff { runEff :: forall m. Monad m => Dispatch fs m -> m a }
+newtype Eff fs a = Eff
+  { -- | Convert to any monad via `Dispatch`.
+    runEff :: forall m. Monad m => Dispatch fs m -> m a
+  }
 
 instance Functor (Eff fs) where
   fmap = liftM
@@ -93,11 +92,13 @@ instance Monad (Eff fs) where
     a <- run d
     callb a `runEff` d
 
+type family Members_ fs gs :: Constraint where
+  Members_ '[]       gs = ()
+  Members_  (f : fs) gs = (Member f gs, Members_ fs gs)
+
 -- | Checks if all of @fs@ effects are present in @gs@.
 --
-type family Members fs gs :: Constraint where
-  Members '[]       gs = ()
-  Members  (f : fs) gs = (Member f gs, Members fs gs)
+type Members fs gs = (Members_ fs gs, Diag gs gs)
 
 -- | Checks if @f@ effect is present in @fs@.
 --
@@ -120,7 +121,7 @@ send fs = Eff \d -> dispatch d $ weave (`runEff` d) fs
 
 -- | An ability to do second-order effects.
 --
-class Effect f where
+class Effect (f :: (* -> *) -> * -> *) where
   weave :: (n ~> m) -> (f n ~> f m)
 
   -- | First-order effects can be inferred with "anyclass".
@@ -138,13 +139,13 @@ run = (`runEff` skip)
 
 -- | Peel off one effect at a time.
 --
-{-# INLINE interpret #-}
-interpret
+{-# INLINE plug #-}
+plug
   :: forall f fs
   .  (Effect f, Diag fs fs)
   => (f  (Eff fs) ~> Eff fs)
   -> Eff (f : fs) ~> Eff fs
-interpret retract = (`runEff` (retract :/\ diag))
+plug retract = (`runEff` (retract :/\ diag))
 
 -- | Make a @Eff gs@ out of @Eff fs@.
 --

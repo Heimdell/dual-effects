@@ -1,3 +1,5 @@
+{- | Resource management effect.
+-}
 
 module Effect.Resource
   ( -- * Interface
@@ -20,24 +22,28 @@ import Core
 import Effect.Final
 import Effect.Lift
 
+-- | Ability to allocate resources.
 data Resource m a where
   Bracket :: forall a b c m. m a -> (a -> m c) -> (a -> m b) -> Resource m b
 
 instance Effect Resource where
   weave f (Bracket alloc dealloc act) = Bracket (f alloc) (f . dealloc) (f . act)
 
-protect :: Member Resource fs => Eff fs a -> (a -> Eff fs c) -> (a -> Eff fs b) -> Eff fs b
+-- | Allocate a resource, use it and then deallocate.
+protect :: Members '[Resource] fs => Eff fs a -> (a -> Eff fs c) -> (a -> Eff fs b) -> Eff fs b
 protect alloc dealloc act = send (Bracket alloc dealloc act)
 
-finally :: Member Resource fs => Eff fs a -> Eff fs b -> Eff fs a
+-- | Perform second action even if first one raised an exception.
+finally :: Members '[Resource] fs => Eff fs a -> Eff fs b -> Eff fs a
 finally act dealloc = protect (pure ()) (const dealloc) (const act)
 
+-- | Delegate to `MonadMask`.
 asMask
   :: forall m fs
-  .  (MonadMask m, Members [Lift m, Final m] fs, Diag fs fs)
+  .  (Members [Lift m, Final m] fs, MonadMask m)
   => Eff (Resource : fs)
   ~> Eff fs
-asMask = interpret \case
+asMask = plug \case
   Bracket alloc dealloc act -> do
     nalloc   <- final  @m alloc
     ndealloc <- final1 @m dealloc

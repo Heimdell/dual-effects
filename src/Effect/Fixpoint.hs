@@ -31,16 +31,16 @@ data Fixpoint m a where
 instance Effect Fixpoint where
   weave f (Fixpoint fp) = Fixpoint (f . fp)
 
-instance Member Fixpoint fs => MonadFix (Eff fs) where
+instance Members '[Fixpoint] fs => MonadFix (Eff fs) where
   mfix fp = send (Fixpoint fp)
 
 -- | Delegate to the `Final` monad.
 asFixpoint
   :: forall m fs
-  .  (Members [Final m, Lift m] fs, Diag fs fs, MonadFix m)
+  .  (Members [Final m, Lift m] fs, MonadFix m)
   => Eff (Fixpoint : fs)
   ~> Eff fs
-asFixpoint = interpret \case
+asFixpoint = plug \case
   Fixpoint fp -> do
     nfp <- final1 @m fp
     lift @m $ mfix nfp

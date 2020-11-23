@@ -1,24 +1,24 @@
 
 {-|
-  The `MonadState` effect.
+  The `MTL.MonadState`-like effect.
 -}
 
 module Effect.State
-  -- ( -- * Interface
-  --   State
-  -- , get
-  -- , gets
-  -- , put
-  -- , modify
+  ( -- * Interface
+    State
+  , get
+  , gets
+  , put
+  , modify
 
-  --   -- * Implementations
-  -- , storeViaRIO
-  -- , mergeState
-  -- , asState
+    -- * Implementations
+  , storeViaRIO
+  , mergeState
+  , asState
 
-  --   -- * Re-exporting core
-  -- , module Core
-  -- )
+    -- * Re-exporting core
+  , module Core
+  )
   where
 
 import Control.Monad.IO.Class
@@ -33,29 +33,35 @@ import Effect.Lift
 import Effect.Reader
 import Product
 
+-- | Ability to have `MTL.State` @s@.
 data State s (m :: * -> *) a where
   Get ::      State s m s
   Put :: s -> State s m ()
   deriving anyclass Effect
 
-get :: forall s fs. Member (State s) fs => Eff fs s
+-- | Get current state.
+get :: forall s fs. Members '[State s] fs => Eff fs s
 get = send Get
 
+-- | Get view on the current state.
+gets :: forall s a fs. Members '[State s] fs => (s -> a) -> Eff fs a
 gets f = f <$> get
 
-put :: forall s fs. Member (State s) fs => s -> Eff fs ()
+-- | Replace the state.
+put :: forall s fs. Members '[State s] fs => s -> Eff fs ()
 put s = send (Put s)
 
-modify :: forall s fs. Member (State s) fs => (s -> s) -> Eff fs ()
+-- | Modify the state.
+modify :: forall s fs. Members '[State s] fs => (s -> s) -> Eff fs ()
 modify f = put . f =<< get
 
 -- | Implement via `IORef`.
 storeViaRIO
   :: forall e m fs
-  .  (MonadIO m, Members [Reader (IORef e), Lift m] fs, Diag fs fs)
+  .  (MonadIO m, Members [Reader (IORef e), Lift m] fs)
   => Eff (State e : fs)
   ~> Eff            fs
-storeViaRIO = interpret \case
+storeViaRIO = plug \case
   Get -> do
     ref <- ask
     lift @m $ liftIO $ readIORef ref
@@ -67,13 +73,12 @@ storeViaRIO = interpret \case
 -- | Implement like `mergeEnv`.
 mergeState
   :: forall x xs fs
-  .  (Contains x xs, Member (State (Product xs)) fs, Diag fs fs)
+  .  (Contains x xs, Members '[State (Product xs)] fs)
   => Eff (State x : fs)
   ~> Eff            fs
-mergeState = interpret \case
+mergeState = plug \case
   Get -> do
-    e <- get @(Product xs)
-    return (getElem e)
+    gets @(Product xs) getElem
 
   Put s -> do
     modify @(Product xs) $ modElem $ const s
@@ -81,9 +86,9 @@ mergeState = interpret \case
 -- | Delegate to final monad.
 asState
   :: forall e m fs
-  .  (Members '[Lift m] fs, Diag fs fs, MTL.MonadState e m)
+  .  (Members '[Lift m] fs, MTL.MonadState e m)
   => Eff (State e : fs)
   ~> Eff fs
-asState = interpret \case
+asState = plug \case
   Get   -> lift @m  MTL.get
   Put s -> lift @m (MTL.put s)

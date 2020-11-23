@@ -2,7 +2,7 @@
 import Data.IORef
 
 import Control.Monad.Reader (ReaderT, runReaderT)
-import Control.Monad.Catch
+import Control.Monad.Catch hiding (finally)
 import Control.Monad.IO.Class
 
 import Effect.Final
@@ -23,70 +23,42 @@ data Err = Err Double
   deriving stock    Show
   deriving anyclass Exception
 
-type M = ReaderT (Product [IORef String, Int]) IO
+type M = ReaderT (Product [IORef String, Integer]) IO
 
 someEffect
-  :: forall m fs
-  .  ( Members [State String, Trace, Reader Int, Except, Lift IO] fs
-     , Diag fs fs
-     )
+  :: forall fs
+  .  Members [State String, Trace, Reader Integer, Except, Resource, Lift IO] fs
   => String
-  -> Eff fs Int
+  -> Eff fs Integer
 someEffect str = do
-    local @Int (subtract 2) do
-      modify (str <>)
-      e <- ask
-      trace $ "E is " ++ show e
-      if e <= 0
-      then do
-        throwM (Err 1.0)
-      else do
-        return e
+    local (subtract 2) do
+        modify (str <>)
+        e <- ask
+        trace $ "E is " ++ show e
+        if e <= 0
+        then do
+          throwM (Err 1.0)
+        else do
+          return e
+      `finally` do
+        trace "finally"
   `catch` \(Err d) -> do
-    liftIO $ putStrLn "hehe"
+    liftIO $ putStrLn ("catched " ++ show d)
     return 42
 
 main = do
   ref <- newIORef "bar"
-  x <- flip runReaderT (Cons ref (Cons (2 :: Int) Nil))
+  x <- flip runReaderT (ref :> (2 :: Integer) :> Nil)
     $ runM
     $ liftToFinal   @M
     $ liftViaNat    @IO @M liftIO
-    $ asReader      @(Product [IORef String, Int]) @M
-    $ mergeEnv      @(IORef String) @[IORef String, Int]
-    $ mergeEnv      @Int            @[IORef String, Int]
+    $ asMask        @M
+    $ asReader      @(Product [IORef String, Integer]) @M
+    $ mergeEnv      @(IORef String) @[IORef String, Integer]
+    $ mergeEnv      @Integer        @[IORef String, Integer]
     $ errorViaCatch @M
     $ storeViaRIO   @String @M
     $ debugTrace
     $ someEffect "foo"
   print x
   print =<< readIORef ref
-
--- countDown :: Member (State Int) fs => Eff fs Int
--- countDown = do
---   x <- retrieve
---   if x <= 0
---   then do
---     return x
---   else do
---     store (x - 1)
---     countDown
-
--- countDown' :: MonadState Int m => m Int
--- countDown' = do
---   x <- get
---   if x <= 0
---   then do
---     return x
---   else do
---     put (x - 1)
---     countDown'
-
--- main = do
---   print
---     $ flip runState (10000000 :: Int)
---     $ countDown'
---     -- $ runM
---     -- $ embedToFinal @(State Int)
---     -- $ asState @Int @(State Int)
---     -- $ countDown

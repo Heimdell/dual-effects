@@ -1,4 +1,6 @@
 
+{- | `Trace.traceM`, but embedded as an `Effect`.
+-}
 module Effect.Trace
   ( -- * Interface
     Trace
@@ -20,23 +22,27 @@ import Effect.Writer
 
 import qualified Debug.Trace as Trace
 
+-- | Ability to write tracing messages.
 data Trace (m :: * -> *) a where
   Trace :: String -> Trace m ()
   deriving anyclass Effect
 
-trace :: Member Trace fs => String -> Eff fs ()
+-- | Write a tracing message.
+trace :: Members '[Trace] fs => String -> Eff fs ()
 trace s = send (Trace s)
 
+-- | Implement via `Writer`.
 writeTrace
-  :: (Member (Writer [String]) fs, Diag fs fs)
+  :: Members '[Writer [String]] fs
   => Eff (Trace : fs)
   ~> Eff fs
-writeTrace = interpret \case
+writeTrace = plug \case
   Trace s -> tell [s]
 
+-- | Implement via `Trace.traceM`.
 debugTrace
-  :: Diag fs fs
+  :: Members '[] fs
   => Eff (Trace : fs)
   ~> Eff fs
-debugTrace = interpret \case
+debugTrace = plug \case
   Trace s -> Trace.traceM s
