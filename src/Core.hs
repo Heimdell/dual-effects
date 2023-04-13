@@ -117,7 +117,7 @@ instance Member f fs => Member f (g : fs) where
 --
 {-# INLINE send #-}
 send :: forall f fs. (Effect f, Member f fs) => f (Eff fs) ~> Eff fs
-send fs = Eff \d -> dispatch d $ weave (`runEff` d) fs
+send fs = Eff \d -> dispatch d $ weave (\a -> a `runEff` d) fs
 
 -- | An ability to do second-order effects.
 --
@@ -135,7 +135,7 @@ class Effect (f :: (* -> *) -> * -> *) where
 -- | Every effect library should have this one.
 --
 run :: Monad m => Eff '[] ~> m
-run = (`runEff` skip)
+run = (\a -> a `runEff` skip)
 
 -- | Peel off one effect at a time.
 --
@@ -145,12 +145,12 @@ plug
   .  (Effect f, Diag fs fs)
   => (f  (Eff fs) ~> Eff fs)
   -> Eff (f : fs) ~> Eff fs
-plug retract = (`runEff` (retract :/\ diag))
+plug retract = (\a -> a `runEff` (retract :/\ diag))
 
 -- | Make a @Eff gs@ out of @Eff fs@.
 --
 expand :: Diag fs gs => Eff fs ~> Eff gs
-expand = (`runEff` diag)
+expand = (\a -> a `runEff` diag)
 
 -- | Ability to make a @Eff gs@ out of @Eff fs@.
 --
