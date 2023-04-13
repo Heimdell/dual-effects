@@ -17,13 +17,14 @@ module Effect.Lift
   where
 
 import Control.Monad.IO.Class
+import Data.Kind (Type)
 
 import Core
 import Effect.Final
 
 -- | The message.
 --
-data Lift n (m :: * -> *) a where
+data Lift n (m :: Type -> Type) a where
 
   -- | Use the action from the final monad.
   --

@@ -28,6 +28,7 @@ default-extensions:
 - DerivingStrategies
 - DeriveAnyClass
 - StandaloneDeriving
+- NoStarIsType
 
 library:
   source-dirs:

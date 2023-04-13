@@ -49,7 +49,7 @@ import Control.Monad (liftM, ap)
 import Control.Monad.Fix
 
 import Data.Coerce (Coercible, coerce)
-import Data.Kind (Constraint)
+import Data.Kind (Constraint, Type)
 
 -- | For all @x@, a type of function from @f x@ to @g x@.
 --
@@ -121,7 +121,7 @@ send fs = Eff \d -> dispatch d $ weave (\a -> a `runEff` d) fs
 
 -- | An ability to do second-order effects.
 --
-class Effect (f :: (* -> *) -> * -> *) where
+class Effect (f :: (Type -> Type) -> Type -> Type) where
   weave :: (n ~> m) -> (f n ~> f m)
 
   -- | First-order effects can be inferred with "anyclass".

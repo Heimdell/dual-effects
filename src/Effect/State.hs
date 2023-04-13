@@ -26,6 +26,7 @@ import qualified Control.Monad.State as MTL
 
 import Data.IORef
 import Data.Coerce
+import Data.Kind (Type)
 
 import Core
 import Effect.Final
@@ -34,7 +35,7 @@ import Effect.Reader
 import Product
 
 -- | Ability to have `MTL.State` @s@.
-data State s (m :: * -> *) a where
+data State s (m :: Type -> Type) a where
   Get ::      State s m s
   Put :: s -> State s m ()
   deriving anyclass Effect

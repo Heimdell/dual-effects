@@ -16,6 +16,7 @@ module Effect.Trace
   where
 
 import Data.String
+import Data.Kind (Type)
 
 import Core
 import Effect.Writer
@@ -23,7 +24,7 @@ import Effect.Writer
 import qualified Debug.Trace as Trace
 
 -- | Ability to write tracing messages.
-data Trace (m :: * -> *) a where
+data Trace (m :: Type -> Type) a where
   Trace :: String -> Trace m ()
   deriving anyclass Effect
 
