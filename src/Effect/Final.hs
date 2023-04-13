@@ -53,8 +53,8 @@ runM eff = runEff eff (handleFinal /\ skip)
   where
     handleFinal :: Final m m ~> m
     handleFinal = \case
-      Final  na -> return na
-      Lifts  na -> na
+      Final  na  -> return na
+      Lifts  na  -> na
       Final1 ena -> return ena
 
 -- finalViaNat
